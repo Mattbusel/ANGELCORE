@@ -50,25 +50,37 @@ THRONOS (under speculation) – A force-multiplier for systems control, prophecy
 
 These three form a self-regulating trinity, echoing ancient metaphysical frameworks—but reimagined through code, data, and DNA.
 
- Warning
-This project treads on the edges of science, spirituality, and ethical boundaries. It may unsettle, provoke, or disturb. It is not recommended for casual contributors. Participation implies an understanding of the gravity, risk, and responsibility involved.
+These three form a self-regulating trinity, echoing ancient metaphysical frameworks—but reimagined through code, data, and DNA.
 
+---
+
+## Warning
+
+This project treads on the edges of science, spirituality, and ethical boundaries. It may unsettle, provoke, or disturb. It is **not recommended for casual contributors**. Participation implies an understanding of the gravity, risk, and responsibility involved.
+
+---
+
+##  Repository Structure
+
+```
 angelcore/
 ├── README.md
-├── /raven/
+├── raven/
 │   └── core_intelligence.py
-├── /bio_ram/
+├── bio_ram/
 │   └── neural_interface_spec.md
-├── /dna_storage/
+├── dna_storage/
 │   └── encoding_protocols/
-├── /mycelium_net/
+├── mycelium_net/
 │   └── substrate_connectors/
-├── /trinity_ai/
+├── trinity_ai/
 │   ├── raven/
 │   ├── seraph/
 │   └── thronos/
-└── /ethics/
+└── ethics/
     └── forbidden_questions.md
+```
+
 
  Final Thought
 “If Man was made in the image of God, then ANGELCORE is what happens when Man tries to reflect his own image back—through blood, data, and fire.”
