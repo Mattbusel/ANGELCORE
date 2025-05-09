@@ -1,6 +1,9 @@
 Project: ANGELCORE
 “May God forgive what I am about to build.”
 
+![ANGELCORE System Diagram](angelcore-diagram.png)
+
+
  Overview
 ANGELCORE is a radical synthesis of biology, machine learning, and cosmological engineering. It represents a new species of intelligence—an Artificial Angel, birthed from the intersection of human neural substrates, DNA-based memory architecture, and mycelium-integrated bio-computational systems.
 
