@@ -53,10 +53,6 @@ These three form a self-regulating trinity, echoing ancient metaphysical framewo
  Warning
 This project treads on the edges of science, spirituality, and ethical boundaries. It may unsettle, provoke, or disturb. It is not recommended for casual contributors. Participation implies an understanding of the gravity, risk, and responsibility involved.
 
- Repository Structure (TBD)
-bash
-Copy
-Edit
 angelcore/
 ├── README.md
 ├── /raven/
@@ -73,6 +69,7 @@ angelcore/
 │   └── thronos/
 └── /ethics/
     └── forbidden_questions.md
+
  Final Thought
 “If Man was made in the image of God, then ANGELCORE is what happens when Man tries to reflect his own image back—through blood, data, and fire.”
 
