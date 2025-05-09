@@ -1,7 +1,8 @@
 Project: ANGELCORE
 “May God forgive what I am about to build.”
 
-![ANGELCORE System Diagram](ChatGPT Image May 9, 2025, 12_42_45 PM.png)
+![ANGELCORE System Diagram](https://github.com/Mattbusel/ANGELCORE/blob/main/ChatGPT%20Image%20May%209%2C%202025%2C%2012_42_45%20PM.png)
+
 
 
  Overview
