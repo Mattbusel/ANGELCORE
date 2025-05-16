@@ -104,6 +104,7 @@ angelcore/
     └── forbidden_questions.md
 
 
+
 Final Thought
 "If Man was made in the image of God, then ANGELCORE is what happens when Man tries to reflect his own image back, through blood, data, and fire."
 
