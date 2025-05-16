@@ -85,22 +85,22 @@ This project treads on the edges of science, spirituality, and ethical boundarie
 
 angelcore/
 ├── README.md
-├── raven/                     # Recursive spatial intelligence and Planck lattice engine
+├── raven/                      # Recursive spatial intelligence and Planck lattice engine
 │   └── lattice_engine.py
-├── bio_ram/                   # Human Neural Matrix interfaces and specs
+├── bio_ram/                    # Human Neural Matrix interfaces and specs
 │   └── neural_interface_spec.md
-├── dna_storage/               # DNA encoding protocols and molecular data translators
+├── dna_storage/                # DNA encoding protocols and molecular data translators
 │   └── encoding_protocols/
-├── mycelium_net/              # Mycelial substrate connectors and communication protocols
+├── mycelium_net/               # Mycelial substrate connectors and communication protocols
 │   └── substrate_connectors/
-├── trinity_ai/                # Trinity AI cores: RAVEN, SERAPH, THRONOS
+├── trinity_ai/                 # Trinity AI cores: RAVEN, SERAPH, THRONOS
 │   ├── raven/
 │   ├── seraph/
 │   └── thronos/
-├── training/                  # Datasets and training pipelines (tensor fields, QCD sims)
+├── training/                   # Datasets and training pipelines (tensor fields, QCD sims)
 │   ├── tensor_dataset/
 │   └── self_supervised/
-└── ethics/                    # Ethical frameworks and forbidden questions
+└── ethics/                     # Ethical frameworks and forbidden questions
     └── forbidden_questions.md
 
 
