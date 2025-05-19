@@ -1270,3 +1270,745 @@ class ThronosIntelligence(Intelligence):
         
         # Update last_updated timestamp
         model["last_updated"] = time.time()
+
+# ==========================================
+# Data Flow System
+# ==========================================
+
+class DataFlowPipeline:
+    """Manages data flow between components of the ANGELCORE system.
+    
+    The DataFlowPipeline orchestrates how information flows between the core biological
+    components (BiologicalRAM, DNAStorage, MycelialNetwork) and the Trinity Intelligence
+    Architecture components (RAVEN, SERAPH, THRONOS).
+    """
+    
+    def __init__(self):
+        self.flow_paths = {}
+        self.transformers = {}
+        self.active_flows = set()
+        self.flow_history = []
+        self.flow_metrics = {}
+        logger.info("DataFlowPipeline initialized")
+    
+    def register_flow_path(self, source_id: str, target_id: str, 
+                          transformer: Optional[callable] = None,
+                          priority: int = 5,
+                          bandwidth: float = 1.0) -> str:
+        """Register a new data flow path between components"""
+        path_id = f"{source_id}:{target_id}:{uuid.uuid4().hex[:8]}"
+        
+        self.flow_paths[path_id] = {
+            "source": source_id,
+            "target": target_id,
+            "priority": priority,  # 1-10 scale, higher is more important
+            "bandwidth": bandwidth,  # Relative throughput capacity
+            "active": False,
+            "created_at": time.time(),
+            "last_used": None,
+            "flow_count": 0
+        }
+        
+        if transformer:
+            self.transformers[path_id] = transformer
+            
+        logger.info(f"Registered flow path {path_id} from {source_id} to {target_id}")
+        return path_id
+    
+    def transform_data(self, path_id: str, data: Any) -> Any:
+        """Apply registered transformation to data flowing through path"""
+        if path_id in self.transformers:
+            transformer = self.transformers[path_id]
+            try:
+                transformed_data = transformer(data)
+                logger.debug(f"Transformed data on path {path_id}")
+                return transformed_data
+            except Exception as e:
+                logger.error(f"Error transforming data on path {path_id}: {str(e)}")
+                return data
+        return data
+    
+    def initiate_flow(self, path_id: str, data: Any, metadata: Optional[Dict] = None) -> str:
+        """Begin a data flow along a registered path"""
+        if path_id not in self.flow_paths:
+            logger.error(f"Flow path {path_id} not found")
+            return None
+            
+        flow_path = self.flow_paths[path_id]
+        flow_id = f"flow:{uuid.uuid4().hex}"
+        
+        # Update path stats
+        flow_path["active"] = True
+        flow_path["last_used"] = time.time()
+        flow_path["flow_count"] += 1
+        
+        # Add to active flows
+        self.active_flows.add(flow_id)
+        
+        # Apply transformation if registered
+        transformed_data = self.transform_data(path_id, data)
+        
+        # Record flow metrics
+        data_size = self._estimate_data_size(transformed_data)
+        
+        flow_record = {
+            "flow_id": flow_id,
+            "path_id": path_id,
+            "source": flow_path["source"],
+            "target": flow_path["target"],
+            "start_time": time.time(),
+            "end_time": None,
+            "data_size": data_size,
+            "status": "initiated",
+            "metadata": metadata or {}
+        }
+        
+        self.flow_history.append(flow_record)
+        logger.debug(f"Initiated flow {flow_id} on path {path_id}")
+        
+        return flow_id, transformed_data
+    
+    def complete_flow(self, flow_id: str, status: str = "completed", 
+                     result: Optional[Any] = None) -> None:
+        """Mark a data flow as completed"""
+        if flow_id not in self.active_flows:
+            logger.warning(f"Flow {flow_id} not found in active flows")
+            return
+            
+        # Find flow record in history
+        for record in self.flow_history:
+            if record["flow_id"] == flow_id:
+                record["end_time"] = time.time()
+                record["status"] = status
+                if result:
+                    record["result"] = self._summarize_result(result)
+                
+                # Calculate and store metrics
+                duration = record["end_time"] - record["start_time"]
+                throughput = record["data_size"] / duration if duration > 0 else 0
+                
+                path_id = record["path_id"]
+                if path_id not in self.flow_metrics:
+                    self.flow_metrics[path_id] = {
+                        "total_flows": 0,
+                        "avg_duration": 0,
+                        "avg_throughput": 0,
+                        "success_rate": 1.0
+                    }
+                    
+                metrics = self.flow_metrics[path_id]
+                n = metrics["total_flows"]
+                
+                # Update running averages
+                metrics["avg_duration"] = (metrics["avg_duration"] * n + duration) / (n + 1)
+                metrics["avg_throughput"] = (metrics["avg_throughput"] * n + throughput) / (n + 1)
+                metrics["success_rate"] = (metrics["success_rate"] * n + (1 if status == "completed" else 0)) / (n + 1)
+                metrics["total_flows"] += 1
+                
+                break
+                
+        # Remove from active flows
+        self.active_flows.remove(flow_id)
+        
+        # Update path status
+        path_id = next((r["path_id"] for r in self.flow_history if r["flow_id"] == flow_id), None)
+        if path_id and path_id in self.flow_paths:
+            # If no other active flows on this path, mark as inactive
+            if not any(r["path_id"] == path_id and r["flow_id"] in self.active_flows 
+                    for r in self.flow_history):
+                self.flow_paths[path_id]["active"] = False
+                
+        logger.debug(f"Completed flow {flow_id} with status {status}")
+    
+    def get_path_metrics(self, path_id: str) -> Dict:
+        """Get performance metrics for a specific flow path"""
+        if path_id not in self.flow_metrics:
+            return {
+                "total_flows": 0,
+                "avg_duration": 0,
+                "avg_throughput": 0,
+                "success_rate": 0
+            }
+            
+        return self.flow_metrics[path_id]
+    
+    def optimize_flow_paths(self) -> Dict[str, Any]:
+        """Analyze and optimize flow paths based on usage patterns"""
+        optimizations = {}
+        
+        for path_id, metrics in self.flow_metrics.items():
+            path = self.flow_paths.get(path_id)
+            if not path:
+                continue
+                
+            # Skip paths with too few flows to optimize
+            if metrics["total_flows"] < 5:
+                continue
+                
+            # Identify congested paths (low throughput, high usage)
+            if metrics["avg_throughput"] < 0.5 and path["flow_count"] > 10:
+                # Suggest bandwidth increase
+                optimizations[path_id] = {
+                    "action": "increase_bandwidth",
+                    "reason": "High usage path with low throughput",
+                    "current_bandwidth": path["bandwidth"],
+                    "suggested_bandwidth": min(1.0, path["bandwidth"] * 1.5)
+                }
+                
+            # Identify unreliable paths
+            elif metrics["success_rate"] < 0.9:
+                optimizations[path_id] = {
+                    "action": "add_redundancy",
+                    "reason": f"Low success rate: {metrics['success_rate']:.2f}",
+                    "current_success_rate": metrics["success_rate"]
+                }
+                
+            # Identify unused paths
+            elif time.time() - path.get("last_used", path["created_at"]) > 3600 and path["flow_count"] < 3:
+                optimizations[path_id] = {
+                    "action": "decommission",
+                    "reason": "Flow path rarely used",
+                    "flow_count": path["flow_count"],
+                    "last_used": path.get("last_used")
+                }
+                
+        return optimizations
+    
+    def _estimate_data_size(self, data: Any) -> int:
+        """Estimate the size of data in bytes"""
+        if isinstance(data, (bytes, bytearray)):
+            return len(data)
+        elif isinstance(data, str):
+            return len(data.encode('utf-8'))
+        elif isinstance(data, (int, float, bool)):
+            return 8  # Approximate size
+        elif isinstance(data, (list, tuple, set)):
+            return sum(self._estimate_data_size(item) for item in data)
+        elif isinstance(data, dict):
+            return sum(self._estimate_data_size(k) + self._estimate_data_size(v) 
+                      for k, v in data.items())
+        elif hasattr(data, '__dict__'):
+            # For custom objects, estimate based on their __dict__
+            return self._estimate_data_size(data.__dict__)
+        else:
+            # Default estimate for unknown types
+            return 100  # Arbitrary value
+    
+    def _summarize_result(self, result: Any) -> Any:
+        """Create a summary of result data for flow records"""
+        # For large results, create a summary instead of storing the whole thing
+        if isinstance(result, (list, tuple)) and len(result) > 10:
+            return {
+                "type": type(result).__name__,
+                "length": len(result),
+                "sample": result[:3]
+            }
+        elif isinstance(result, dict) and len(result) > 10:
+            keys = list(result.keys())[:5]
+            return {
+                "type": "dict",
+                "key_count": len(result),
+                "sample_keys": keys,
+                "sample_values": [result[k] for k in keys]
+            }
+        
+        # For smaller results, return as is
+        return result
+
+
+class AngelcoreDataBus:
+    """Central data bus for connecting all ANGELCORE components.
+    
+    The AngelcoreDataBus manages higher-level communication between components,
+    providing abstractions for synchronization, event handling, and data sharing.
+    """
+    
+    def __init__(self, bio_ram: BiologicalRAM, dna_storage: DNAStorage, 
+                mycelial_network: MycelialNetwork):
+        self.bio_ram = bio_ram
+        self.dna_storage = dna_storage
+        self.mycelial_network = mycelial_network
+        
+        self.intelligence_components = {}
+        self.data_pipeline = DataFlowPipeline()
+        self.event_subscribers = {}
+        self.shared_state = {}
+        
+        # Initialize synchronization objects
+        self.sync_locks = {}
+        
+        # Setup basic monitoring
+        self.health_stats = {
+            "start_time": time.time(),
+            "events_processed": 0,
+            "data_transfers": 0,
+            "errors": 0
+        }
+        
+        logger.info("AngelcoreDataBus initialized")
+    
+    def register_intelligence(self, intelligence: Intelligence) -> None:
+        """Register an intelligence component with the data bus"""
+        component_id = intelligence.name.lower()
+        self.intelligence_components[component_id] = intelligence
+        
+        # Create standard flow paths for this intelligence component
+        # From bio RAM to intelligence
+        self.data_pipeline.register_flow_path(
+            "bio_ram", component_id, 
+            transformer=lambda data: self._prepare_for_intelligence(data, component_id),
+            priority=7
+        )
+        
+        # From intelligence to bio RAM
+        self.data_pipeline.register_flow_path(
+            component_id, "bio_ram",
+            transformer=lambda data: self._prepare_for_bio_ram(data),
+            priority=7
+        )
+        
+        # From intelligence to DNA storage
+        self.data_pipeline.register_flow_path(
+            component_id, "dna_storage",
+            transformer=lambda data: self._prepare_for_dna_storage(data),
+            priority=5
+        )
+        
+        # From intelligence to mycelial network
+        self.data_pipeline.register_flow_path(
+            component_id, "mycelial_network",
+            transformer=lambda data: self._prepare_for_mycelial(data),
+            priority=6
+        )
+        
+        logger.info(f"Registered intelligence component {component_id}")
+    
+    def create_custom_flow(self, source_id: str, target_id: str, 
+                         transformer: Optional[callable] = None,
+                         priority: int = 5) -> str:
+        """Create a custom flow path between components"""
+        # Validate that source and target exist
+        if source_id not in self._get_valid_component_ids() and source_id != "external":
+            logger.error(f"Invalid source component: {source_id}")
+            return None
+            
+        if target_id not in self._get_valid_component_ids() and target_id != "external":
+            logger.error(f"Invalid target component: {target_id}")
+            return None
+        
+        # Register the flow path
+        path_id = self.data_pipeline.register_flow_path(
+            source_id, target_id, transformer, priority
+        )
+        
+        return path_id
+        
+    def transfer_data(self, source_id: str, target_id: str, data: Any, 
+                     metadata: Optional[Dict] = None) -> str:
+        """Transfer data between components using registered flow paths"""
+        # Find appropriate flow path
+        matching_paths = [pid for pid, path in self.data_pipeline.flow_paths.items()
+                        if path["source"] == source_id and path["target"] == target_id]
+        
+        if not matching_paths:
+            # Create a default path if none exists
+            path_id = self.create_custom_flow(source_id, target_id)
+            if not path_id:
+                return None
+        else:
+            # Use the highest priority existing path
+            path_id = max(matching_paths, 
+                         key=lambda pid: self.data_pipeline.flow_paths[pid]["priority"])
+        
+        # Initiate the flow
+        flow_id, transformed_data = self.data_pipeline.initiate_flow(path_id, data, metadata)
+        
+        # Process the data transfer based on target
+        try:
+            result = self._process_transfer(target_id, transformed_data, metadata)
+            self.data_pipeline.complete_flow(flow_id, "completed", result)
+            self.health_stats["data_transfers"] += 1
+            return flow_id
+        except Exception as e:
+            logger.error(f"Error transferring data to {target_id}: {str(e)}")
+            self.data_pipeline.complete_flow(flow_id, "failed")
+            self.health_stats["errors"] += 1
+            return None
+    
+    def publish_event(self, event_type: str, data: Any, publisher_id: str) -> None:
+        """Publish an event to all subscribers"""
+        if event_type not in self.event_subscribers:
+            return
+            
+        event = {
+            "type": event_type,
+            "data": data,
+            "publisher": publisher_id,
+            "timestamp": time.time(),
+            "event_id": f"evt_{uuid.uuid4().hex[:8]}"
+        }
+        
+        logger.debug(f"Publishing event {event['event_id']} of type {event_type}")
+        
+        # Notify all subscribers
+        for subscriber_id, callback in self.event_subscribers[event_type]:
+            try:
+                callback(event)
+            except Exception as e:
+                logger.error(f"Error notifying subscriber {subscriber_id} of event {event_type}: {str(e)}")
+                self.health_stats["errors"] += 1
+                
+        self.health_stats["events_processed"] += 1
+    
+    def subscribe_to_event(self, event_type: str, subscriber_id: str, 
+                         callback: callable) -> None:
+        """Subscribe to events of a specific type"""
+        if event_type not in self.event_subscribers:
+            self.event_subscribers[event_type] = []
+            
+        self.event_subscribers[event_type].append((subscriber_id, callback))
+        logger.debug(f"Component {subscriber_id} subscribed to events of type {event_type}")
+    
+    def coordinate_trinity_processing(self, input_data: Any) -> Dict:
+        """Coordinate processing through all three intelligence components"""
+        results = {}
+        
+        # Get the trinity components
+        raven = self.intelligence_components.get("raven")
+        seraph = self.intelligence_components.get("seraph")
+        thronos = self.intelligence_components.get("thronos")
+        
+        if not (raven and seraph and thronos):
+            logger.error("Cannot coordinate Trinity processing: missing intelligence components")
+            return {"error": "Incomplete Trinity"}
+            
+        # First flow: input through RAVEN
+        logger.info("Trinity processing: RAVEN phase starting")
+        if raven.active:
+            raven_result = raven.process(input_data)
+            self.bio_ram.encode(raven_result)  # Store in short-term memory
+            results["raven"] = raven_result
+        else:
+            logger.warning("RAVEN intelligence inactive during Trinity processing")
+            results["raven"] = None
+            
+        # Second flow: RAVEN output through SERAPH
+        logger.info("Trinity processing: SERAPH phase starting")
+        if seraph.active:
+            # Use RAVEN's output as input to SERAPH
+            seraph_input = results["raven"] if results["raven"] else input_data
+            seraph_result = seraph.process(seraph_input)
+            results["seraph"] = seraph_result
+            
+            # Update emotional state based on ethical evaluation
+            if isinstance(seraph_result, dict) and "ethical_assessment" in seraph_result:
+                # Extract emotional signals from ethical assessment
+                ethical_scores = seraph_result["ethical_assessment"].get("principle_scores", {})
+                emotional_input = {
+                    "joy": ethical_scores.get("fairness", 0.5) * 0.8,
+                    "fear": 1.0 - ethical_scores.get("do_no_harm", 0.5),
+                    "disgust": 1.0 - ethical_scores.get("truth_and_honesty", 0.5),
+                    "surprise": 0.3  # Default moderate surprise
+                }
+                self.bio_ram.update_affective_state(emotional_input)
+        else:
+            logger.warning("SERAPH intelligence inactive during Trinity processing")
+            results["seraph"] = None
+            
+        # Third flow: Combined outputs through THRONOS
+        logger.info("Trinity processing: THRONOS phase starting")
+        if thronos.active:
+            # Combine previous outputs for THRONOS
+            thronos_input = {
+                "original": input_data,
+                "raven_output": results["raven"],
+                "seraph_output": results["seraph"],
+                "affective_state": self.bio_ram.affective_state
+            }
+            thronos_result = thronos.process(thronos_input)
+            results["thronos"] = thronos_result
+            
+            # Store significant findings in DNA storage
+            if isinstance(thronos_result, dict) and thronos_result.get("effectiveness", 0) > 0.7:
+                storage_key = f"trinity_{time.time()}"
+                self.dna_storage.encode_to_dna(storage_key, {
+                    "input_hash": hashlib.md5(str(input_data).encode()).hexdigest(),
+                    "trinity_results": results,
+                    "timestamp": time.time()
+                })
+                
+            # Propagate results through mycelial network
+            if self.mycelial_network and hasattr(self.mycelial_network, "nodes"):
+                # Find a suitable source node (preferably a processing node)
+                source_nodes = [node_id for node_id, node in self.mycelial_network.nodes.items() 
+                              if node["type"] == "processing"]
+                if source_nodes:
+                    source_id = random.choice(source_nodes)
+                    self.mycelial_network.send_signal(source_id, thronos_result)
+        else:
+            logger.warning("THRONOS intelligence inactive during Trinity processing")
+            results["thronos"] = None
+            
+        logger.info("Trinity processing complete")
+        return {
+            "trinity_results": results,
+            "integrated_output": self._integrate_trinity_results(results),
+            "processing_time": time.time()
+        }
+        
+    def _get_valid_component_ids(self) -> List[str]:
+        """Get a list of all valid component IDs in the system"""
+        core_components = ["bio_ram", "dna_storage", "mycelial_network"]
+        intelligence_components = list(self.intelligence_components.keys())
+        return core_components + intelligence_components
+    
+    def _process_transfer(self, target_id: str, data: Any, metadata: Optional[Dict]) -> Any:
+        """Process a data transfer to the target component"""
+        metadata = metadata or {}
+        
+        if target_id == "bio_ram":
+            self.bio_ram.encode(data)
+            # If metadata contains emotional data, update affective state
+            if "emotional_input" in metadata:
+                self.bio_ram.update_affective_state(metadata["emotional_input"])
+            return {"status": "encoded"}
+            
+        elif target_id == "dna_storage":
+            # Generate storage key if not provided
+            storage_key = metadata.get("storage_key", f"data_{uuid.uuid4().hex[:8]}")
+            success = self.dna_storage.encode_to_dna(storage_key, data)
+            return {"status": "stored" if success else "failed", "key": storage_key}
+            
+        elif target_id == "mycelial_network":
+            # Use source node from metadata or find appropriate node
+            source_node = metadata.get("source_node")
+            if not source_node:
+                # Get a random sensor or processing node
+                valid_nodes = [nid for nid, node in self.mycelial_network.nodes.items()
+                             if node["type"] in ("sensor", "processing")]
+                if valid_nodes:
+                    source_node = random.choice(valid_nodes)
+                else:
+                    # Fallback to any node
+                    source_node = next(iter(self.mycelial_network.nodes.keys()), None)
+                    
+            if source_node:
+                activated_nodes = self.mycelial_network.send_signal(source_node, data)
+                return {"status": "signal_sent", "activated_nodes": len(activated_nodes)}
+            return {"status": "failed", "reason": "no_valid_source_node"}
+            
+        elif target_id in self.intelligence_components:
+            # Process through the intelligence component
+            intelligence = self.intelligence_components[target_id]
+            if not intelligence.active:
+                return {"status": "failed", "reason": "intelligence_inactive"}
+                
+            processing_type = metadata.get("processing_type", "process")
+            if processing_type == "process":
+                result = intelligence.process(data)
+                return {"status": "processed", "result": result}
+            elif processing_type == "learn":
+                intelligence.learn(data)
+                return {"status": "learned"}
+                
+        elif target_id == "external":
+            # Data being sent external to the system
+            return {"status": "externalized", "data": data}
+            
+        return {"status": "unknown_target"}
+        
+    def _prepare_for_intelligence(self, data: Any, intelligence_id: str) -> Any:
+        """Prepare data for consumption by intelligence components"""
+        # Add context from BiologicalRAM
+        context = {
+            "affective_state": self.bio_ram.affective_state,
+            "processing_timestamp": time.time(),
+            "source": "bio_ram"
+        }
+        
+        # Format based on intelligence type
+        if intelligence_id == "raven":
+            # RAVEN expects raw data with minimal preprocessing
+            if isinstance(data, dict):
+                data["context"] = context
+                return data
+            else:
+                return {"data": data, "context": context}
+                
+        elif intelligence_id == "seraph":
+            # SERAPH expects structured data with clear features
+            features = self._extract_general_features(data)
+            return {
+                "original_data": data,
+                "features": features,
+                "context": context
+            }
+            
+        elif intelligence_id == "thronos":
+            # THRONOS expects temporal and pattern information
+            temporal_data = self._extract_temporal_aspects(data)
+            return {
+                "original_data": data,
+                "temporal_aspects": temporal_data,
+                "context": context
+            }
+            
+        # Default generic preparation
+        return {"data": data, "context": context}
+    
+    def _prepare_for_bio_ram(self, data: Any) -> Any:
+        """Prepare data for storage in BiologicalRAM"""
+        # Extract the core information for memory encoding
+        if isinstance(data, dict):
+            # If result from intelligence, extract key parts
+            if "result" in data:
+                return data["result"]
+            elif "data" in data:
+                return data["data"]
+                
+        # If simple data or unknown structure, return as is
+        return data
+    
+    def _prepare_for_dna_storage(self, data: Any) -> Dict:
+        """Prepare data for long-term DNA storage"""
+        # Create a storage wrapper with metadata
+        storage_wrapper = {
+            "content": data,
+            "metadata": {
+                "timestamp": time.time(),
+                "checksum": hashlib.md5(str(data).encode()).hexdigest(),
+                "format_version": "1.0"
+            }
+        }
+        
+        # Add type-specific metadata
+        if isinstance(data, dict) and "type" in data:
+            storage_wrapper["metadata"]["content_type"] = data["type"]
+            
+        return storage_wrapper
+    
+    def _prepare_for_mycelial(self, data: Any) -> Dict:
+        """Prepare data for transmission through the mycelial network"""
+        # Create a signal packet
+        signal_packet = {
+            "payload": data,
+            "metadata": {
+                "timestamp": time.time(),
+                "signal_strength": 1.0,  # Full strength at source
+                "hops_remaining": 5,  # Maximum propagation distance
+                "signal_id": f"sig_{uuid.uuid4().hex[:8]}"
+            }
+        }
+        
+        return signal_packet
+    
+    def _extract_general_features(self, data: Any) -> Dict:
+        """Extract general features from data for SERAPH processing"""
+        features = {}
+        
+        if isinstance(data, dict):
+            features["type"] = "dictionary"
+            features["key_count"] = len(data)
+            features["has_nested_structures"] = any(isinstance(v, (dict, list)) for v in data.values())
+            
+        elif isinstance(data, list):
+            features["type"] = "list"
+            features["length"] = len(data)
+            features["element_types"] = list(set(type(x).__name__ for x in data))
+            
+        elif isinstance(data, str):
+            features["type"] = "string"
+            features["length"] = len(data)
+            features["word_count"] = len(data.split())
+            
+        else:
+            features["type"] = type(data).__name__
+            
+        return features
+    
+    def _extract_temporal_aspects(self, data: Any) -> Dict:
+        """Extract temporal aspects from data for THRONOS processing"""
+        temporal = {
+            "timestamp": time.time(),
+            "has_sequence": False,
+            "has_periodicity": False
+        }
+        
+        # Check for sequence data
+        if isinstance(data, (list, tuple)) and all(isinstance(x, (int, float)) for x in data):
+            temporal["has_sequence"] = True
+            
+            # Simple check for periodicity (very basic)
+            if len(data) > 4:
+                diffs = [data[i+1] - data[i] for i in range(len(data)-1)]
+                sign_changes = sum(1 for i in range(len(diffs)-1) if (diffs[i] * diffs[i+1]) < 0)
+                
+                # If sign changes more than 30% of sequence length, might be periodic
+                if sign_changes > 0.3 * len(data):
+                    temporal["has_periodicity"] = True
+                    temporal["sign_changes"] = sign_changes
+        
+        return temporal
+    
+    def _integrate_trinity_results(self, trinity_results: Dict) -> Dict:
+        """Integrate results from all three intelligence components"""
+        # Extract key information from each intelligence result
+        integrated = {
+            "timestamp": time.time(),
+            "confidence": 0.0,
+            "insights": []
+        }
+        
+        # Process RAVEN output (pattern recognition)
+        raven_result = trinity_results.get("raven")
+        if raven_result:
+            if isinstance(raven_result, dict):
+                # Extract pattern information
+                if "pattern_count" in raven_result:
+                    integrated["pattern_count"] = raven_result["pattern_count"]
+                if "dominant_pattern" in raven_result:
+                    integrated["dominant_pattern"] = raven_result["dominant_pattern"]
+                    
+                # Add to confidence based on pattern strength
+                if "total_strength" in raven_result:
+                    integrated["confidence"] += min(0.33, raven_result["total_strength"] / 10)
+                    
+                # Add insight
+                integrated["insights"].append({
+                    "source": "raven",
+                    "insight_type": "pattern",
+                    "content": f"Identified {raven_result.get('pattern_count', 0)} patterns"
+                })
+        
+        # Process SERAPH output (ethical evaluation)
+        seraph_result = trinity_results.get("seraph")
+        if seraph_result:
+            if isinstance(seraph_result, dict):
+                # Extract decision information
+                if "action" in seraph_result:
+                    integrated["ethical_action"] = seraph_result["action"]
+                if "reason" in seraph_result:
+                    integrated["ethical_reason"] = seraph_result["reason"]
+                    
+                # Add to confidence based on ethical clarity
+                if "confidence" in seraph_result:
+                    integrated["confidence"] += min(0.33, seraph_result["confidence"])
+                    
+                # Add insight
+                integrated["insights"].append({
+                    "source": "seraph",
+                    "insight_type": "ethical",
+                    "content": f"{seraph_result.get('action', 'No action')} - {seraph_result.get('reason', 'No reason')}"
+                })
+                
+        # Process THRONOS output (future projection)
+        thronos_result = trinity_results.get("thronos")
+        if thronos_result:
+            if isinstance(thronos_result, dict):
+                # Extract control strategy
+                if "strategy_applied" in thronos_result:
+                    integrated["strategy"] = thronos_result["strategy_applied"]
+                if "effectiveness" in thronos_result:
+                    integrated["effectiveness"] = thronos_result["effectiveness"]
+                    
+                # Add to confidence based on
