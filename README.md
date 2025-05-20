@@ -83,6 +83,8 @@ Early-stage implementation of a symbolic physics engine capable of:
 | Visualization Tools        | 🔲 Not Started | Needed for architectural walkthroughs           |
 | Documentation              | 🔲 In Progress | README + architecture visual planned            |
 
+![ANGELCORE System Diagram](https://github.com/Mattbusel/ANGELCORE/blob/main/ChatGPT%20Image%20May%2019%2C%202025%2C%2008_56_38%20PM.png)
+
 ## 📍 Next Steps
 
 1.  Expand RAVEN into full symbolic memory loop and strategic perception layer
