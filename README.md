@@ -72,7 +72,7 @@ Early-stage implementation of a symbolic physics engine capable of:
 * Modeling and prototyping exotic materials such as INCM (Inertial-Neutral Containment Material)
 * Framework for real-time spacetime manipulation at Planck fidelity
 
-## 🛠️ Development Status
+##  Development Status
 
 | Component                  | Status         | Notes                                           |
 | -------------------------- | -------------- | ----------------------------------------------- |
@@ -85,7 +85,7 @@ Early-stage implementation of a symbolic physics engine capable of:
 
 ![ANGELCORE System Diagram](https://github.com/Mattbusel/ANGELCORE/blob/main/ChatGPT%20Image%20May%2019%2C%202025%2C%2008_56_38%20PM.png)
 
-## 📍 Next Steps
+##  Next Steps
 
 1.  Expand RAVEN into full symbolic memory loop and strategic perception layer
 2.  Implement recursive long-term memory embedding using virtual tensor state
@@ -95,29 +95,94 @@ Early-stage implementation of a symbolic physics engine capable of:
 6.  Expand `ethics/forbidden_questions.md` into full speculative ethics model
 7.  MVP simulation environment (biofeedback + recursive signal flow)
 
-##  Directory Structure
+# ANGELCORE
 
-```
-angelcore/
+ANGELCORE is a modular AI architecture designed to fuse biological memory systems (e.g., mycelium networks and DNA-based storage) with symbolic reasoning, ethical evaluation, and temporal execution. It is built around a trinity core:
+
+- **RAVEN** – Symbolic Intelligence
+- **SERAPH** – Ethical Alignment
+- **THRONOS** – Temporal Prediction & Execution
+
+Recent updates include GPT-based integration for real-time symbolic interpretation and ethical evaluation.
+
+---
+
+##  Core Modules
+
+| Module       | Function                                      |
+|--------------|-----------------------------------------------|
+| `raven/`     | Cognitive analysis and symbolic interpretation |
+| `seraph/`    | Moral/ethical evaluation of system actions     |
+| `thronos/`   | Timeline modeling, execution paths             |
+| `bio_ram/`   | Biological memory interface (mycelium/DNA)     |
+| `pipeline/`  | DataBus and signal routing layer               |
+| `llm/`       | GPT-4 adapter for reasoning enhancement        |
+
+
+##  File Structure
+
+```bash
+ANGELCORE/
 ├── README.md
-├── raven/                     # Core recursive symbolic engine
-│   └── core_intelligence.py
-│   └── lattice_engine.py
-├── bio_ram/                  # Human Neural Matrix interface
-│   └── neural_interface_spec.py
-├── dna_storage/              # DNA memory encoding and molecular protocols
-│   └── encoding_protocols/
-├── mycelium_net/             # Living network communication stack
-│   └── substrate_connectors/
-├── trinity_ai/               # AI Trinity: RAVEN, SERAPH, THRONOS
+├── requirements.txt
+├── .gitignore
+├── angelcore/
 │   ├── raven/
+│   │   └── core_intelligence.py
 │   ├── seraph/
-│   └── thronos/
-├── training/                 # Self-supervised datasets (tensor QCD sims)
-│   ├── tensor_dataset/
-│   └── self_supervised/
-└── ethics/                   # Speculative and moral research
-    └── forbidden_questions.md
+│   │   └── ethical_filter.py
+│   ├── thronos/
+│   │   └── temporal_executor.py
+│   ├── bio_ram/
+│   │   ├── dna_storage.py
+│   │   ├── neural_interface_spec.py
+│   │   └── mycelial_network.py
+│   ├── pipeline/
+│   │   └── data_bus.py
+│   └── llm/
+│       └── llm_adapter.py
+├── examples/
+│   └── demo_run.py
+└── docs/
+    ├── architecture_diagram.png
+    └── [module_overviews].md
+```
+
+
+##  Example Run
+
+```python
+# examples/demo_run.py
+from angelcore.llm.llm_adapter import LLMAdapter
+from angelcore.raven.core_intelligence import RavenIntelligence
+from angelcore.seraph.ethical_filter import SeraphIntelligence
+
+llm = LLMAdapter()
+raven = RavenIntelligence(llm)
+seraph = SeraphIntelligence(llm)
+
+pattern = "110010011001 - Synaptic burst encoding"
+interpretation = raven.interpret_pattern(pattern)
+print("[RAVEN]", interpretation)
+
+ethics = seraph.evaluate_ethics(f"Recall memory: {interpretation}")
+print("[SERAPH]", ethics)
+```
+
+
+##  Vision
+ANGELCORE is more than a neural framework — it is an artificial living intelligence system, recursively learning and evolving across mycelial, symbolic, and ethical substrates.
+
+It is designed to:
+- Fuse nature and machine
+- Respect memory and biology
+- Align action with intention
+
+
+---
+
+Want to contribute? Curious about this vision? Reach out, fork, or drop a PR.
+
 ```
 
 ##  Warning
