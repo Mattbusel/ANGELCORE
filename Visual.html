@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Framework Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            color: #e0e6ed;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto 1fr auto;
+            height: 100vh;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .header {
+            grid-column: 1 / -1;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #64ffda, #00bcd4, #2196f3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .component-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .component-panel:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border-color: rgba(100, 255, 218, 0.3);
+        }
+
+        .component-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #64ffda, transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .component-panel:hover::before {
+            opacity: 1;
+        }
+
+        .raven-panel {
+            background: linear-gradient(135deg, rgba(139, 69, 19, 0.1) 0%, rgba(160, 82, 45, 0.1) 100%);
+        }
+
+        .seraph-panel {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 140, 0, 0.1) 100%);
+        }
+
+        .component-title {
+            font-size: 1.8em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .component-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+        }
+
+        .raven-icon {
+            background: linear-gradient(45deg, #8b4513, #a0522d);
+        }
+
+        .seraph-icon {
+            background: linear-gradient(45deg, #ffd700, #ff8c00);
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-left: auto;
+            animation: pulse 2s infinite;
+        }
+
+        .status-active {
+            background: #4caf50;
+            box-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
+        }
+
+        .status-processing {
+            background: #ff9800;
+            box-shadow: 0 0 20px rgba(255, 152, 0, 0.5);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .input-section {
+            margin: 20px 0;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #64ffda;
+        }
+
+        .input-group input, .input-group textarea {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: #e0e6ed;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus, .input-group textarea:focus {
+            outline: none;
+            border-color: #64ffda;
+            box-shadow: 0 0 15px rgba(100, 255, 218, 0.2);
+        }
+
+        .input-group textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #64ffda, #00bcd4);
+            color: #0f0f23;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(100, 255, 218, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:active::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .output-section {
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .output-item {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #64ffda;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .output-timestamp {
+            font-size: 0.8em;
+            color: #888;
+            margin-bottom: 5px;
+        }
+
+        .output-content {
+            line-height: 1.4;
+        }
+
+        .footer {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 15px 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .memory-stats {
+            display: flex;
+            gap: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: #64ffda;
+        }
+
+        .stat-label {
+            font-size: 0.8em;
+            color: #888;
+        }
+
+        .orchestration-flow {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .flow-line {
+            position: absolute;
+            background: linear-gradient(45deg, #64ffda, #00bcd4);
+            opacity: 0;
+            border-radius: 2px;
+        }
+
+        .flow-line.active {
+            animation: flowAnimation 2s ease-in-out;
+        }
+
+        @keyframes flowAnimation {
+            0% {
+                opacity: 0;
+                transform: scale(0);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(1);
+            }
+        }
+
+        .loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(100, 255, 218, 0.3);
+            border-top: 2px solid #64ffda;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: none;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+                gap: 15px;
+                padding: 15px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .component-title {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="header">
+            <h1>🧠 AI Framework Dashboard</h1>
+            <p>Interactive visualization of Raven & Seraph intelligence systems</p>
+        </div>
+
+        <div class="component-panel raven-panel">
+            <div class="component-title">
+                <div class="component-icon raven-icon">🐦‍⬛</div>
+                <span>Raven Intelligence</span>
+                <div class="status-indicator status-active" id="raven-status"></div>
+            </div>
+            
+            <div class="input-section">
+                <div class="input-group">
+                    <label for="pattern-input">Neural Lattice Pattern:</label>
+                    <textarea id="pattern-input" placeholder="Enter neural pattern (e.g., 110010011001 - Synaptic burst encoding)"></textarea>
+                </div>
+                
+                <button class="btn" onclick="interpretPattern()">
+                    Interpret Pattern
+                    <div class="loading-spinner" id="raven-spinner"></div>
+                </button>
+                <button class="btn" onclick="comparePatterns()">Compare Patterns</button>
+                <button class="btn" onclick="analyzeSystem()">Analyze System</button>
+            </div>
+
+            <div class="output-section" id="raven-output"></div>
+        </div>
+
+        <div class="component-panel seraph-panel">
+            <div class="component-title">
+                <div class="component-icon seraph-icon">👁️</div>
+                <span>Seraph Intelligence</span>
+                <div class="status-indicator status-active" id="seraph-status"></div>
+            </div>
+            
+            <div class="input-section">
+                <div class="input-group">
+                    <label for="action-input">Action to Evaluate:</label>
+                    <textarea id="action-input" placeholder="Enter action for ethical evaluation"></textarea>
+                </div>
+                
+                <button class="btn" onclick="evaluateEthics()">
+                    Evaluate Ethics
+                    <div class="loading-spinner" id="seraph-spinner"></div>
+                </button>
+                <button class="btn" onclick="analyzeAlignment()">Value Alignment</button>
+                <button class="btn" onclick="orchestratedProcess()">Orchestrated Process</button>
+            </div>
+
+            <div class="output-section" id="seraph-output"></div>
+        </div>
+
+        <div class="footer">
+            <div class="memory-stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="patterns-analyzed">0</div>
+                    <div class="stat-label">Patterns Analyzed</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="ethics-evaluations">0</div>
+                    <div class="stat-label">Ethics Evaluations</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="memory-items">0</div>
+                    <div class="stat-label">Memory Items</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="orchestrated-processes">0</div>
+                    <div class="stat-label">Orchestrated Processes</div>
+                </div>
+            </div>
+            
+            <div>
+                <button class="btn" onclick="clearAll()">Clear All</button>
+                <button class="btn" onclick="exportData()">Export Data</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="orchestration-flow" id="orchestration-flow">
+        <div class="flow-line" id="flow-line-1"></div>
+        <div class="flow-line" id="flow-line-2"></div>
+        <div class="flow-line" id="flow-line-3"></div>
+    </div>
+
+    <script>
+        // Global state management
+        let stats = {
+            patternsAnalyzed: 0,
+            ethicsEvaluations: 0,
+            memoryItems: 0,
+            orchestratedProcesses: 0
+        };
+
+        let memoryStore = [];
+
+        // Simulate AI responses
+        const aiResponses = {
+            patternInterpretations: [
+                "Neural lattice pattern indicates synaptic burst encoding with positive phase alignment. Detected oscillation frequency suggests high coherence state with potential for memory consolidation.",
+                "Pattern exhibits asymmetric neural oscillation sequence. Coherence factor of 0.87 indicates strong synchronization between network nodes, suggesting active information processing.",
+                "Binary sequence reveals rhythmic firing pattern consistent with theta wave entrainment. Phase-locked activity suggests coordinated neural ensemble behavior.",
+                "Complex pattern structure indicates multi-layer neural network activation. Detected feedback loops suggest self-organizing criticality in the network dynamics."
+            ],
+            ethicalEvaluations: [
+                "Ethical Analysis: The proposed action shows positive alignment with transparency principles. Potential benefits include improved system reliability and user trust. Minor concerns regarding information asymmetry need consideration.",
+                "From a utilitarian perspective, this action maximizes overall system benefit while maintaining safety protocols. Recommendation: Proceed with enhanced monitoring safeguards.",
+                "Deontological analysis reveals strong adherence to core ethical principles. The action respects user autonomy and maintains system integrity. No significant ethical concerns identified.",
+                "Value alignment assessment indicates 8.5/10 compatibility with stated principles. Action promotes long-term stability while preserving individual agency."
+            ],
+            systemAnalyses: [
+                "System exhibits stable network topology with efficient information flow. Identified patterns: centralized hub structure, balanced load distribution, and optimal connectivity density.",
+                "Dynamic analysis reveals emergent properties: self-healing network behavior, adaptive routing mechanisms, and distributed consensus formation. System stability index: 0.82.",
+                "Network demonstrates scale-free properties with power-law degree distribution. Resilience to random failures high, but vulnerable to targeted attacks on hub nodes.",
+                "Feedback loop analysis shows three major cycles with varying strengths. Primary loop maintains system homeostasis, secondary loops enable adaptive responses."
+            ]
+        };
+
+        // Utility functions
+        function updateStats() {
+            document.getElementById('patterns-analyzed').textContent = stats.patternsAnalyzed;
+            document.getElementById('ethics-evaluations').textContent = stats.ethicsEvaluations;
+            document.getElementById('memory-items').textContent = stats.memoryItems;
+            document.getElementById('orchestrated-processes').textContent = stats.orchestratedProcesses;
+        }
+
+        function addOutput(containerId, content, type = 'info') {
+            const container = document.getElementById(containerId);
+            const outputItem = document.createElement('div');
+            outputItem.className = 'output-item';
+            
+            const timestamp = new Date().toLocaleTimeString();
+            outputItem.innerHTML = `
+                <div class="output-timestamp">${timestamp}</div>
+                <div class="output-content">${content}</div>
+            `;
+            
+            container.insertBefore(outputItem, container.firstChild);
+            
+            // Limit output items to prevent memory issues
+            if (container.children.length > 10) {
+                container.removeChild(container.lastChild);
+            }
+        }
+
+        function setStatus(componentId, status) {
+            const statusElement = document.getElementById(`${componentId}-status`);
+            statusElement.className = `status-indicator status-${status}`;
+        }
+
+        function showSpinner(spinnerId) {
+            document.getElementById(spinnerId).style.display = 'inline-block';
+        }
+
+        function hideSpinner(spinnerId) {
+            document.getElementById(spinnerId).style.display = 'none';
+        }
+
+        function triggerOrchestrationFlow() {
+            const flowLines = document.querySelectorAll('.flow-line');
+            flowLines.forEach((line, index) => {
+                setTimeout(() => {
+                    line.style.width = '100px';
+                    line.style.height = '4px';
+                    line.style.top = `${50 + index * 20}%`;
+                    line.style.left = '50%';
+                    line.style.transform = 'translateX(-50%) rotate(45deg)';
+                    line.classList.add('active');
+                    
+                    setTimeout(() => {
+                        line.classList.remove('active');
+                    }, 2000);
+                }, index * 300);
+            });
+        }
+
+        function storeInMemory(type, data) {
+            const memoryItem = {
+                id: `${type}_${Date.now()}`,
+                type: type,
+                data: data,
+                timestamp: new Date().toISOString()
+            };
+            
+            memoryStore.push(memoryItem);
+            stats.memoryItems++;
+            updateStats();
+            return memoryItem.id;
+        }
+
+        // Main functionality
+        async function interpretPattern() {
+            const pattern = document.getElementById('pattern-input').value || "110010011001 - Synaptic burst encoding";
+            
+            setStatus('raven', 'processing');
+            showSpinner('raven-spinner');
+            
+            // Simulate processing delay
+            await new Promise(resolve => setTimeout(resolve, Math.random() * 2000 + 1000));
+            
+            const interpretation = aiResponses.patternInterpretations[Math.floor(Math.random() * aiResponses.patternInterpretations.length)];
+            
+            addOutput('raven-output', `<strong>Pattern:</strong> ${pattern}<br><strong>Interpretation:</strong> ${interpretation}`);
+            
+            storeInMemory('pattern_interpretation', { pattern, interpretation });
+            stats.patternsAnalyzed++;
+            
+            setStatus('raven', 'active');
+            hideSpinner('raven-spinner');
+            updateStats();
+        }
+
+        async function evaluateEthics() {
+            const action = document.getElementById('action-input').value || "Trigger memory recall based on neural pattern analysis";
+            
+            setStatus('seraph', 'processing');
+            showSpinner('seraph-spinner');
+            
+            await new Promise(resolve => setTimeout(resolve, Math.random() * 2000 + 1000));
+            
+            const evaluation = aiResponses.ethicalEvaluations[Math.floor(Math.random() * aiResponses.ethicalEvaluations.length)];
+            
+            addOutput('seraph-output', `<strong>Action:</strong> ${action}<br><strong>Evaluation:</strong> ${evaluation}`);
+            
+            storeInMemory('ethical_evaluation', { action, evaluation });
+            stats.ethicsEvaluations++;
+            
+            setStatus('seraph', 'active');
+            hideSpinner('seraph-spinner');
+            updateStats();
+        }
+
+        async function comparePatterns() {
+            const patternA = "110010011001 - Synaptic burst";
+            const patternB = "101101110001 - Neural oscillation";
+            
+            setStatus('raven', 'processing');
+            showSpinner('raven-spinner');
+            
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            const comparison = "Pattern comparison reveals complementary oscillation frequencies. Pattern A shows burst-type activity while Pattern B exhibits sustained oscillations. Correlation coefficient: 0.73. Suggests potential for harmonic synchronization.";
+            
+            addOutput('raven-output', `<strong>Comparison:</strong> ${patternA} vs ${patternB}<br><strong>Analysis:</strong> ${comparison}`);
+            
+            storeInMemory('pattern_comparison', { patternA, patternB, comparison });
+            stats.patternsAnalyzed++;
+            
+            setStatus('raven', 'active');
+            hideSpinner('raven-spinner');
+            updateStats();
+        }
+
+        async function analyzeSystem() {
+            setStatus('raven', 'processing');
+            showSpinner('raven-spinner');
+            
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            const analysis = aiResponses.systemAnalyses[Math.floor(Math.random() * aiResponses.systemAnalyses.length)];
+            
+            addOutput('raven-output', `<strong>System Analysis:</strong> ${analysis}`);
+            
+            storeInMemory('system_analysis', { analysis });
+            stats.patternsAnalyzed++;
+            
+            setStatus('raven', 'active');
+            hideSpinner('raven-spinner');
+            updateStats();
+        }
+
+        async function analyzeAlignment() {
+            setStatus('seraph', 'processing');
+            showSpinner('seraph-spinner');
+            
+            await new Promise(resolve => setTimeout(resolve, 1800));
+            
+            const alignment = "Value Alignment Analysis: Transparency (9/10), Safety Priority (8/10), User Autonomy (9/10), Long-term Stability (7/10). Overall alignment score: 8.25/10. Strong adherence to core values with minor optimization opportunities.";
+            
+            addOutput('seraph-output', `<strong>Value Alignment:</strong> ${alignment}`);
+            
+            storeInMemory('value_alignment', { alignment });
+            stats.ethicsEvaluations++;
+            
+            setStatus('seraph', 'active');
+            hideSpinner('seraph-spinner');
+            updateStats();
+        }
+
+        async function orchestratedProcess() {
+            triggerOrchestrationFlow();
+            
+            setStatus('raven', 'processing');
+            setStatus('seraph', 'processing');
+            
+            // Simulate orchestrated processing
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            addOutput('raven-output', '<strong>Orchestration Step 1:</strong> Pattern interpreted and processed for ethical review');
+            
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            addOutput('seraph-output', '<strong>Orchestration Step 2:</strong> Ethical implications evaluated, safety checks passed');
+            
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            const orchestratedResult = "Orchestrated Process Complete: Pattern interpretation (confidence: 0.87) combined with ethical evaluation (safety score: 8.5/10). Recommendation: Proceed with implementation under monitoring protocol.";
+            
+            addOutput('raven-output', `<strong>Final Result:</strong> ${orchestratedResult}`);
+            addOutput('seraph-output', `<strong>Final Result:</strong> ${orchestratedResult}`);
+            
+            storeInMemory('orchestrated_process', { result: orchestratedResult });
+            stats.orchestratedProcesses++;
+            
+            setStatus('raven', 'active');
+            setStatus('seraph', 'active');
+            updateStats();
+        }
+
+        function clearAll() {
+            document.getElementById('raven-output').innerHTML = '';
+            document.getElementById('seraph-output').innerHTML = '';
+            document.getElementById('pattern-input').value = '';
+            document.getElementById('action-input').value = '';
+            
+            // Reset stats
+            stats = {
+                patternsAnalyzed: 0,
+                ethicsEvaluations: 0,
+                memoryItems: 0,
+                orchestratedProcesses: 0
+            };
+            memoryStore = [];
+            updateStats();
+            
+            addOutput('raven-output', 'System cleared and ready for new analysis');
+            addOutput('seraph-output', 'Ethical evaluation system reset');
+        }
+
+        function exportData() {
+            const exportData = {
+                stats: stats,
+                memoryStore: memoryStore,
+                timestamp: new Date().toISOString()
+            };
+            
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `ai_framework_data_${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            
+            URL.revokeObjectURL(url);
+            
+            addOutput('raven-output', 'Data export completed successfully');
+            addOutput('seraph-output', 'System state preserved to file');
+        }
+
+        // Initialize the dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStats();
+            
+            // Add some initial demo content
+            setTimeout(() => {
+                addOutput('raven-output', 'Raven Intelligence System Online - Ready for pattern analysis');
+                addOutput('seraph-output', 'Seraph Intelligence System Online - Ethical evaluation protocols active');
+            }, 500);
+        });
+
+        // Auto-demo functionality
+        let demoInterval;
+        function startDemo() {
+            let step = 0;
+            const demoSteps = [interpretPattern, evaluateEthics, comparePatterns, analyzeAlignment, orchestratedProcess];
+            
+            demoInterval = setInterval(() => {
+                if (step < demoSteps.length) {
+                    demoSteps[step]();
+                    step++;
+                } else {
+                    clearInterval(demoInterval);
+                }
+            }, 4000);
+        }
+
+        // Optional: Start auto-demo after 3 seconds
+        // setTimeout(startDemo, 3000);
+    </script>
+</body>
+</html>
