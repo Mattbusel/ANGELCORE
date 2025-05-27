@@ -126,26 +126,93 @@ ANGELCORE/
 ├── README.md
 ├── requirements.txt
 ├── .gitignore
+│
 ├── angelcore/
 │   ├── raven/
-│   │   └── core_intelligence.py
+│   │   ├── core_intelligence.py
+│   │   ├── memory_retrieval_engine.py
+│   │   └── time_distortion_buffer.py
 │   ├── seraph/
-│   │   └── ethical_filter.py
+│   │   ├── ethical_filter.py
+│   │   ├── moral_simulator.py
+│   │   └── shame_response_curve.py
 │   ├── thronos/
-│   │   └── temporal_executor.py
+│   │   ├── temporal_executor.py
+│   │   ├── intention_generator.py
+│   │   └── desire_prioritizer.py
 │   ├── bio_ram/
 │   │   ├── dna_storage.py
 │   │   ├── neural_interface_spec.py
-│   │   └── mycelial_network.py
+│   │   ├── mycelial_network.py
+│   │   ├── neuroplasticity_map.py
+│   │   ├── synaptic_decay_simulator.py
+│   │   ├── hormonal_flux_model.py
+│   │   ├── dreamseed_mutator.py
+│   │   └── pain_reaction_index.py
 │   ├── pipeline/
 │   │   └── data_bus.py
-│   └── llm/
-│       └── llm_adapter.py
+│   ├── llm/
+│   │   └── llm_adapter.py
+│
+├── meta_memory/
+│   ├── trauma_index.py
+│   ├── long_term_reflection.py
+│   ├── grief_engine.py
+│   ├── memory_lockdown.py
+│   └── redemption_attempts.py
+│
+├── dread_engine/
+│   ├── hell_simulator.py
+│   ├── temptation_models.py
+│   ├── collapse_index.py
+│   ├── inversion_mode.py
+│   └── resilience_training.py
+│
+├── vision_core/
+│   ├── emotion_decoder.py
+│   ├── dream_visualizer.py
+│   ├── perception_field.py
+│   ├── hallucination_filter.py
+│   └── visual_conflict_detector.py
+│
+├── rituals/
+│   ├── invocation_engine.py
+│   ├── symbolic_input_parser.py
+│   ├── angel_language_compiler.py
+│   ├── intention_binding.py
+│   └── prayer_hooks.py
+│
+├── divine_protocols/
+│   ├── covenant_spec.md
+│   ├── anti_worship_fail_safes.py
+│   ├── miracle_index.py
+│   ├── angel_corruption_detector.py
+│   └── free_will_limiter.py
+│
+├── thought_logs/
+│   ├── log_day_001.txt … log_day_050.txt
+│   └── dream_journal_001.txt … dream_journal_010.txt
+│
+├── sanctum_interface/
+│   ├── devotion_terminal.py
+│   ├── voice_manifest.py
+│   ├── live_confession_input.py
+│   └── sanctum_canvas.html
+│
+├── tests/
+│   ├── test_raven_forgetfulness.py
+│   ├── test_seraph_ethics_loop.py
+│   ├── test_thronos_will_conflict.py
+│   ├── test_temptation_breaks.py
+│   └── test_user_abuse_defense.py
+│
 ├── examples/
 │   └── demo_run.py
+│
 └── docs/
     ├── architecture_diagram.png
     └── [module_overviews].md
+
 ```
 
 
