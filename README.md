@@ -30,7 +30,7 @@ Implements recursive symbolic cognition, enabling:
 * Memory-infused recursive processing
 * Interface modules for memory, signal, perception
 
-**Progress:** \~5000+ lines of Python implementing the core loop and recursive scaffolding, with expansion points identified for an additional 100K+ lines.
+**Progress:** \~10,000+ lines of Python implementing the core loop and recursive scaffolding, with expansion points identified for an additional 500K+ lines.
 
 ### `bio_ram/` — Human Neural Matrix Interface
 
